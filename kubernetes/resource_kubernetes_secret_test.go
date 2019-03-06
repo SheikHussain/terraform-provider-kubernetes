@@ -2,9 +2,6 @@ package kubernetes
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"testing"
@@ -238,11 +235,6 @@ func TestAccKubernetesSecret_importGeneratedName(t *testing.T) {
 func TestAccKubernetesSecret_binaryData(t *testing.T) {
 	var conf api.Secret
 	prefix := "tf-acc-test-gen-"
-	fixDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	log.Printf("Fixtures path = %s", fixDir)
-	if err != nil {
-		fmt.Errorf("Can't determine path to test fixtures: %s", err)
-	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -251,14 +243,14 @@ func TestAccKubernetesSecret_binaryData(t *testing.T) {
 		CheckDestroy:  testAccCheckKubernetesSecretDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccKubernetesSecretConfig_binaryData(prefix, fixDir),
+				Config: testAccKubernetesSecretConfig_binaryData(prefix),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesSecretExists("kubernetes_secret.test", &conf),
 					resource.TestCheckResourceAttr("kubernetes_secret.test", "data.%", "1"),
 				),
 			},
 			{
-				Config: testAccKubernetesSecretConfig_binaryData2(prefix, fixDir),
+				Config: testAccKubernetesSecretConfig_binaryData2(prefix),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckKubernetesSecretExists("kubernetes_secret.test", &conf),
 					resource.TestCheckResourceAttr("kubernetes_secret.test", "data.%", "2"),
@@ -454,7 +446,7 @@ resource "kubernetes_secret" "test" {
 `, prefix)
 }
 
-func testAccKubernetesSecretConfig_binaryData(prefix, fixturePath string) string {
+func testAccKubernetesSecretConfig_binaryData(prefix string) string {
 	return fmt.Sprintf(`
 resource "kubernetes_secret" "test" {
   metadata {
@@ -463,15 +455,15 @@ resource "kubernetes_secret" "test" {
 
   data = {
 		one =<<EOF
-"${filebase64("%s/kubernetes/test-fixtures/binary.data")}"
+"${filebase64("./test-fixtures/binary.data")}"
 EOF
 
   }
 }
-`, prefix, fixturePath)
+`, prefix)
 }
 
-func testAccKubernetesSecretConfig_binaryData2(prefix, fixturePath string) string {
+func testAccKubernetesSecretConfig_binaryData2(prefix string) string {
 	return fmt.Sprintf(`
 resource "kubernetes_secret" "test" {
   metadata {
@@ -480,14 +472,14 @@ resource "kubernetes_secret" "test" {
 
   data = {
 		one =<<EOF
-"${filebase64("%s/kubernetes/test-fixtures/binary2.data")}"
+"${filebase64("./test-fixtures/binary2.data")}"
 EOF
 
 		two =<<EOF
-"${filebase64("%s/kubernetes/test-fixtures/binary.data")}"
+"${filebase64("./test-fixtures/binary.data")}"
 EOF
 
   }
 }
-`, prefix, fixturePath, fixturePath)
+`, prefix)
 }
