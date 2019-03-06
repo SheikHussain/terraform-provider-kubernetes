@@ -1246,7 +1246,7 @@ resource "kubernetes_pod" "test" {
       name  = "containername"
     }
 
-    node_selector {
+    node_selector = {
       "failure-domain.beta.kubernetes.io/region" = "%s"
     }
   }
